@@ -188,7 +188,7 @@ type r struct {
 }
 
 // Creates a new Geobed instance. You do not need more than one. You do not want more than one. There's a fair bit of data to load into memory.
-func NewGeobed() GeoBed {
+func NewGeobed(loadMaxmind bool) GeoBed {
 	g := GeoBed{}
 
 	var err error
@@ -197,7 +197,7 @@ func NewGeobed() GeoBed {
 	err = loadGeobedCityNameIdx()
 	if err != nil || len(g.c) == 0 {
 		g.downloadDataSets()
-		g.loadDataSets()
+		g.loadDataSets(loadMaxmind)
 		g.store()
 	}
 
@@ -236,7 +236,7 @@ func (g *GeoBed) downloadDataSets() {
 }
 
 // Unzips the data sets and loads the data.
-func (g *GeoBed) loadDataSets() {
+func (g *GeoBed) loadDataSets(loadMaxmind bool) {
 	locationDedupeIdx = make(map[string]bool)
 
 	for _, f := range dataSetFiles {
@@ -309,6 +309,9 @@ func (g *GeoBed) loadDataSets() {
 
 		// ...And this one is Gzipped (and this one may have worked with the CSV package, but parse it the same way as the others line by line)
 		if f["id"] == "maxmindWorldCities" {
+			if !loadMaxmind {
+				continue
+			}
 			// It also has a lot of dupes
 			maxMindCityDedupeIdx = make(map[string][]string)
 
